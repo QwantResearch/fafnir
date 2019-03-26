@@ -10,15 +10,17 @@ extern crate slog_scope;
 extern crate itertools;
 extern crate num_cpus;
 extern crate par_map;
+extern crate rayon;
 
 use fallible_iterator::FallibleIterator;
 use mimir::rubber::{IndexSettings, Rubber};
 use mimir::{Coord, Poi, PoiType, Property};
 use mimirsbrunn::admin_geofinder::AdminGeoFinder;
 use mimirsbrunn::utils::{format_international_poi_label, format_label};
-use par_map::ParMap;
 use postgres::rows::Row;
 use postgres::Connection;
+use rayon::ThreadPoolBuilder;
+use rayon::prelude::{ParallelIterator, ParallelSliceMut};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -182,12 +184,12 @@ fn find_address(
     }
 }
 
-fn locate_poi(
-    mut poi: Poi,
+fn locate_poi<'a>(
+    poi: &'a mut Poi,
     geofinder: &AdminGeoFinder,
     rubber: &mut Rubber,
     langs: &[String],
-) -> Option<Poi> {
+) -> Option<&'a Poi> {
     let poi_address = find_address(&poi, geofinder, rubber);
 
     // if we have an address, we take the address's admin as the poi's admin
@@ -427,7 +429,8 @@ pub fn load_and_index_pois(
     rubber.initialize_templates()?;
     let poi_index = rubber.make_index(&dataset, &index_settings).unwrap();
 
-    rows.iterator()
+    ThreadPoolBuilder::new().num_threads(nb_threads).build_global().expect("Failed to build thread pool");
+    let mut rows = rows.iterator()
         .filter_map(|r| {
             r.map_err(|r| warn!("Impossible to load the row {:?}", r))
                 .ok()
@@ -437,24 +440,22 @@ pub fn load_and_index_pois(
                 .ok_or_else(|| warn!("Problem occurred in build_poi()"))
                 .ok()
         })
-        .pack(1000)
-        .with_nb_threads(nb_threads)
-        .par_map({
-            let i = poi_index.clone();
-            let langs = langs.clone();
-            move |p| {
+        .collect::<Vec<_>>();
+    {
+        let poi_index = &poi_index;
+        rows.par_chunks_mut(1000)
+            .for_each(move |p| {
                 let mut rub = Rubber::new(&es);
                 let pois = p
                     .into_iter()
                     .filter_map(|poi| locate_poi(poi, &admins_geofinder, &mut rub, &langs));
                 let mut rub2 = Rubber::new(&es);
-                match rub2.bulk_index(&i, pois) {
+                match rub2.bulk_index(&poi_index, pois) {
                     Err(e) => panic!("Failed to bulk insert pois because: {}", e),
                     Ok(nb) => info!("Nb of indexed pois: {}", nb),
-                };
-            }
-        })
-        .for_each(|_| {});
+                }
+            });
+    }
 
     rubber.publish_index(&dataset, poi_index).unwrap();
     Ok(())

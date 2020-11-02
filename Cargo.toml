@@ -5,28 +5,28 @@ authors = ["Adrien Matissart <a.matissart@qwantresearch.com>"]
 edition = "2018"
 
 [dependencies]
-geo-types = "0.4"
+geo-types = "0.6"
 postgres = "0.17.4"
-mimirsbrunn = { git = "https://github.com/canalTP/mimirsbrunn", rev = "e87d6db" }
-mimir = { git = "https://github.com/canalTP/mimirsbrunn", rev = "e87d6db" }
+mimirsbrunn = { git = "https://github.com/canalTP/mimirsbrunn", rev = "a0ca03f" }
+mimir = { git = "https://github.com/canalTP/mimirsbrunn", rev = "a0ca03f" }
 structopt = "0.3"
 log = { version = "0.4", features = ["release_max_level_info"] }
 slog = { version = "2.1", features = ["max_level_trace", "release_max_level_info"]}
-slog-scope = "4.0"
+slog-scope = "4.3"
 itertools = "0.9"
 par-map = "0.1.4"
 num_cpus = "1.13"
 once_cell = "1.4"
-reqwest = "0.9"
+reqwest = "0.10"
 serde = {version = "1", features = ["rc"]}
 serde_json = "1"
 
 [dev-dependencies]
 retry = "*"
 hyper = "0.10"
-bragi = { git = "https://github.com/canalTP/mimirsbrunn", rev = "e87d6db" }
-cosmogony = "0.7"
-rs-es = {git = "https://github.com/canaltp/rs-es", default-features = false, rev = "ea4913e"}
+bragi = { git = "https://github.com/canalTP/mimirsbrunn", rev = "a0ca03f" }
+cosmogony = "0.8"
+rs-es = {git = "https://github.com/canaltp/rs-es", default-features = false, rev = "ce83c8b"}
 serde_derive = "1"
 failure = "0.1"
 approx = "0.2.0"

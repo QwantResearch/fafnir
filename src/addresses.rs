@@ -53,7 +53,7 @@ pub fn get_current_addr(rubber: &mut Rubber, poi_index: &str, osm_id: &str) -> C
         .get(&query)
         .map_err(|err| warn!("query to elasticsearch failed: {:?}", err))
         .ok()
-        .and_then(|mut res| {
+        .and_then(|res| {
             if res.status() != StatusCode::NOT_FOUND {
                 res.json()
                     .map_err(|err| {

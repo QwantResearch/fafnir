@@ -8,7 +8,7 @@ pub fn get_index_creation_date(rubber: &mut Rubber, index: &str) -> Option<u64> 
         .get(&query)
         .map_err(|err| warn!("could not query ES: {:?}", err))
         .ok()
-        .and_then(|mut res| {
+        .and_then(|res| {
             res.text()
                 .map_err(|err| warn!("could not load ES response: {:?}", err))
                 .ok()

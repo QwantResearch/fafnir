@@ -136,7 +136,7 @@ impl<'a> ElasticSearchWrapper<'a> {
     /// simple search on an index
     /// assert that the result is OK and transform it to a json Value
     pub fn search(&self, word: &str) -> serde_json::Value {
-        let mut res = self
+        let res = self
             .rubber
             .get(&format!("munin/_search?q={}&size=100", word))
             .unwrap();
@@ -145,7 +145,7 @@ impl<'a> ElasticSearchWrapper<'a> {
     }
 
     pub fn search_on_global_stop_index(&self, word: &str) -> serde_json::Value {
-        let mut res = self
+        let res = self
             .rubber
             .get(&format!("munin_global_stops/_search?q={}", word))
             .unwrap();

@@ -197,7 +197,7 @@ pub fn load_and_index_pois(
                     let pois =
                         LazyEs::batch_make_progress_until_value(&es_url, pois, max_batch_size)
                             .into_iter()
-                            .filter_map(|poi| poi);
+                            .flatten();
 
                     let (search, no_search): (Vec<IndexedPoi>, Vec<IndexedPoi>) =
                         pois.partition(|p| p.is_searchable);
